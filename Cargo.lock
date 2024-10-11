@@ -73,7 +73,7 @@ checksum = "b048fb63fd8b5923fc5aa7b340d8e156aec7ec02f0c78fa8a6ddc2613f6f71de"
 
 [[package]]
 name = "bsa-parser"
-version = "0.1.1"
+version = "0.1.2"
 dependencies = [
  "assert_cmd",
  "chunk-parser",
@@ -109,8 +109,8 @@ checksum = "baf1de4339761588bc0619e3cbc0120ee582ebb74b53b4efbf79117bd2da40fd"
 
 [[package]]
 name = "chunk-parser"
-version = "0.4.0"
-source = "git+https://github.com/StealthOfKing/rust-chunk-parser.git#e2505fdf5ab99d767d9171efea1b5c331f1af0d4"
+version = "0.4.1"
+source = "git+https://github.com/StealthOfKing/rust-chunk-parser.git#f599bd4630e2e3ffa5bcfb07916673d409262dad"
 dependencies = [
  "chunk-parser-derive",
  "fourcc",
@@ -119,8 +119,8 @@ dependencies = [
 
 [[package]]
 name = "chunk-parser-derive"
-version = "0.4.1"
-source = "git+https://github.com/StealthOfKing/rust-chunk-parser-derive.git#1bb06ba2fbc85dd1d355ecbcb6a44a7445395d82"
+version = "0.4.2"
+source = "git+https://github.com/StealthOfKing/rust-chunk-parser-derive.git#23580b0a87d07ea04c0c873a507a7a05dadd7e9f"
 dependencies = [
  "quote",
  "syn",
@@ -167,7 +167,7 @@ checksum = "60b1af1c220855b6ceac025d3f6ecdd2b7c4894bfe9cd9bda4fbb4bc7c0d4cf0"
 [[package]]
 name = "esm-bindings"
 version = "0.2.5"
-source = "git+https://github.com/trutrix/esm-bindings.git#27bce5220050f0ce9943a03280c1ed38bd6382a6"
+source = "git+https://github.com/trutrix/esm-bindings.git#3a4b9a3393139e9c2c3ac4d8096436751829ede3"
 dependencies = [
  "bindgen",
  "fourcc",

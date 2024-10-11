@@ -1,6 +1,6 @@
 [package]
 name = "bsa-parser"
-version = "0.1.1"
+version = "0.1.2"
 authors = ["tRuTrIx <trutrix@monocyte.host>", "StealthOfKing <sok@monocyte.host>"]
 edition = "2021"
 description = "ESM file parser"

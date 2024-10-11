@@ -13,7 +13,8 @@ fn main() -> Result<()> {
 
     // parse file using guesser
     let mut parser = BSAParser::file(&args[1])?;
-    parser.v104()
+    parser.v104()?;
+    Ok(())
 }
 
 #[cfg(test)]

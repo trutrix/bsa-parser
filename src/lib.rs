@@ -3,23 +3,16 @@
 #![allow(non_snake_case)]
 
 use chunk_parser::prelude::*;
-pub use chunk_parser::Result;
+pub use chunk_parser::{Error, Result};
 use esm_bindings::bsa::*;
 
 use std::ffi::CString;
+use std::io::Read;
 
 //------------------------------------------------------------------------------
+
+/// Rust native implementation of Bethesda Softworks Archive string hash.
 // https://en.uesp.net/wiki/Oblivion_Mod:Hash_Calculation
-
-fn str_hash(str: &str) -> u32 {
-    let mut hash: u32 = 0;
-    for &char in str.as_bytes() {
-        hash = hash.wrapping_mul(0x1003F);
-        hash += char as u32;
-    }
-    hash
-}
-
 fn tes4_hash(name: &str, ext: &str) -> u64 {
     let mut hash: u64 = 0;
 
@@ -40,11 +33,7 @@ fn tes4_hash(name: &str, ext: &str) -> u64 {
     if !ext.is_empty() {
         hash += str_hash(ext) as u64 * 0x100000000;
     
-        let mut i: u8 = 0;
-        if ext == ".nif" { i = 1; }
-        else if ext == ".kf" { i = 2; }
-        else if ext == ".dds" { i = 3; }
-        else if ext == ".wav" { i = 4; }
+        let i = match &ext[1..] { "nif" => 1, "kf" => 2, "dds" => 3, "wav" => 4, _ => 0 };
     
         if i != 0 {
             let a = ((i & 0xfc) << 5) + ((hash & 0xff000000) >> 24) as u8;
@@ -56,6 +45,15 @@ fn tes4_hash(name: &str, ext: &str) -> u64 {
         }
     }
 
+    hash
+}
+
+fn str_hash(str: &str) -> u32 {
+    let mut hash: u32 = 0;
+    for &char in str.as_bytes() {
+        hash = hash.wrapping_mul(0x1003F);
+        hash += char as u32;
+    }
     hash
 }
 
@@ -80,7 +78,7 @@ impl std::hash::Hasher for BSAHasher {
 
 /// Specialised hash map for indexing TES4 hashes.
 #[derive(Default)]
-struct BSAHashMap<V>(HashMap<u64, V, BuildHasherDefault<BSAHasher>>);
+pub struct BSAHashMap<V>(HashMap<u64, V, BuildHasherDefault<BSAHasher>>);
 
 impl<V> BSAHashMap<V> {
     /// Insert data directly into the u64 hash index.
@@ -104,15 +102,33 @@ impl<V> BSAHashMap<V> {
 
 /// BSA folder properties.
 #[derive(Default)]
-pub struct BSAFolder { pub count: u32, pub offset: u32 }
+pub struct BSAFolder {
+    pub count: u32,
+    pub offset: u32,
+}
+
+/// BSA file properties.
+#[derive(Default)]
+pub struct BSAFile {
+    pub size: u32,
+    pub offset: u32,
+}
+
+/// BSA archive container.
+pub struct BSAArchive {
+    pub header: BSAHeader,
+    pub files: BSAHashMap<BSAFile>,
+    pub folders: BSAHashMap<BSAFolder>,
+    pub reader: std::io::BufReader<std::fs::File>,
+}
 
 //------------------------------------------------------------------------------
 
 /// Bethesda Softworks Archive parser.
-#[chunk_parser(custom,depth)]
+#[chunk_parser(custom,depth,path)]
 pub struct BSAParser {}
 
-impl<R> BSAParser<R> where R: std::io::Read + std::io::Seek {
+impl BSAParser<std::io::BufReader<std::fs::File>> {
     /// Read a byte sized string.
     fn read_bzstring(&mut self) -> Result<CString> {
         let length = self.read::<u8>()? as usize;
@@ -137,11 +153,12 @@ impl<R> BSAParser<R> where R: std::io::Read + std::io::Seek {
     }
 
     /// Parser for version 104 of BSA used in Fallout 3.
-    pub fn v104(&mut self) -> Result<()> {
+    pub fn v104(&mut self) -> Result<BSAArchive> {
         let header: BSAHeader = self.read()?;
         println!("{:?}", header);
 
         let mut folders = BSAHashMap::<BSAFolder>::default();
+        let mut files = BSAHashMap::<BSAFile>::default();
 
         for _ in 0..header.folder_count {
             let folder: BSAFolderRecord = self.read()?;
@@ -157,6 +174,8 @@ impl<R> BSAParser<R> where R: std::io::Read + std::io::Seek {
             self.push();
             for _ in 0..folder.count {
                 let file: BSAFileRecord = self.read()?;
+                let hash = file.name_hash;
+                files.insert(hash, BSAFile { size: file.size, offset: file.offset });
                 println!("  {:?}", file);
             }
             self.pop();
@@ -172,7 +191,9 @@ impl<R> BSAParser<R> where R: std::io::Read + std::io::Seek {
 
         // now comes files...
 
-        Ok(())
+        // have to reopen the reader, can't move, copy or clone without implementing BSAParser<R>
+        let reader = std::io::BufReader::new(std::fs::File::open(self.path())?);
+        Ok(BSAArchive { reader, header, folders, files })
     }
 }
 
@@ -191,8 +212,8 @@ mod tests {
 
     #[test]
     fn misc() -> chunk_parser::Result<()> {
-        const DATA: &[u8] = include_bytes!("../data/Misc.bsa");
-        let mut bsa = BSAParser::cursor(DATA);
-        bsa.v104()
+        let mut bsa = BSAParser::file("data/Misc.bsa")?;
+        bsa.v104()?;
+        Ok(())
     }
 }
