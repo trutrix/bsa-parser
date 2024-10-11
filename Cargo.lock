@@ -73,7 +73,7 @@ checksum = "b048fb63fd8b5923fc5aa7b340d8e156aec7ec02f0c78fa8a6ddc2613f6f71de"
 
 [[package]]
 name = "bsa-parser"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "assert_cmd",
  "chunk-parser",
@@ -166,8 +166,8 @@ checksum = "60b1af1c220855b6ceac025d3f6ecdd2b7c4894bfe9cd9bda4fbb4bc7c0d4cf0"
 
 [[package]]
 name = "esm-bindings"
-version = "0.2.4"
-source = "git+https://github.com/trutrix/esm-bindings.git#88eb130d7e9638ac503715307e84196eadc5175d"
+version = "0.2.5"
+source = "git+https://github.com/trutrix/esm-bindings.git#27bce5220050f0ce9943a03280c1ed38bd6382a6"
 dependencies = [
  "bindgen",
  "fourcc",

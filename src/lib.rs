@@ -125,6 +125,17 @@ impl<R> BSAParser<R> where R: std::io::Read + std::io::Seek {
         Ok(unsafe { CString::from_vec_unchecked(v) })
     }
 
+    /// Read a nul terminated string of unknown length.
+    fn read_nul_string(&mut self) -> Result<CString> {
+        let mut v = Vec::new();
+        loop {
+            let byte: u8 = self.read()?;
+            if byte == 0 { break; } // terminate at nul byte
+            v.push(byte);
+        }
+        Ok(unsafe { CString::from_vec_unchecked(v) })
+    }
+
     /// Parser for version 104 of BSA used in Fallout 3.
     pub fn v104(&mut self) -> Result<()> {
         let header: BSAHeader = self.read()?;
@@ -149,6 +160,14 @@ impl<R> BSAParser<R> where R: std::io::Read + std::io::Seek {
                 println!("  {:?}", file);
             }
             self.pop();
+        }
+
+        // list of filenames delimited by nul byte
+        if (header.archive_flags & 0x2) != 0 {
+            for _ in 0..header.file_count {
+                let filename = self.read_nul_string()?;
+                println!("{:?}", filename);
+            }
         }
 
         // now comes files...
