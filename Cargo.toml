@@ -1,0 +1,17 @@
+[package]
+name = "bsa-parser"
+version = "0.1.2"
+authors = ["tRuTrIx <trutrix@monocyte.host>", "StealthOfKing <sok@monocyte.host>"]
+edition = "2021"
+description = "ESM file parser"
+
+[dependencies]
+flate2 = "1.0.34"
+chunk-parser = { git = "https://github.com/StealthOfKing/rust-chunk-parser.git" }
+esm-bindings = { git = "https://github.com/trutrix/esm-bindings.git" }
+
+[dev-dependencies]
+assert_cmd = "2.0"
+
+[[bin]]
+name = "bsa-parser"
